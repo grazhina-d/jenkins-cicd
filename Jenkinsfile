@@ -34,14 +34,14 @@ pipeline {
         
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "docker build -t ${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
         
         stage('Scan Docker Image for Vulnerabilities') {
             steps {
                 script {
-                    def vulnerabilities = sh(script: "trivy image --exit-code 0 --severity HIGH,MEDIUM,LOW --no-progress --cache-dir /tmp/trivy-cache-${env.BRANCH_NAME} ${IMAGE_NAME}:${IMAGE_TAG}", returnStdout: true).trim()
+                    def vulnerabilities = sh(script: "trivy image --exit-code 0 --severity HIGH,MEDIUM,LOW --no-progress --cache-dir /tmp/trivy-cache-${env.BRANCH_NAME} ${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG}", returnStdout: true).trim()
                     echo "Vulnerability Report:\n${vulnerabilities}"
                 }
             }
