@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJS'
-    }
-
     environment {
         IMAGE_NAME = "${env.BRANCH_NAME == 'main' ? 'nodemain' : 'nodedev'}"
         IMAGE_TAG  = 'v1.0'
@@ -18,13 +14,31 @@ pipeline {
             }
         }
 
+        stage('Hadolint') {
+            steps {
+                sh 'hadolint Dockerfile || true'
+            }
+        }
+
         stage('Build') {
+            agent {
+                docker {
+                    image 'node:7.8.0'
+                    reuseNode true
+                }
+            }
             steps {
                 sh 'npm install'
             }
         }
 
         stage('Test') {
+            agent {
+                docker {
+                    image 'node:7.8.0'
+                    reuseNode true
+                }
+            }
             steps {
                 sh 'npm test'
             }
@@ -71,3 +85,4 @@ pipeline {
         }
     }
 }
+
