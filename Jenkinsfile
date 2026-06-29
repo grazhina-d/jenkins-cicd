@@ -1,37 +1,35 @@
 pipeline {
     agent any
-    
+
     tools {
         nodejs 'NodeJS'
     }
-    
+
     environment {
         IMAGE_NAME = "${env.BRANCH_NAME == 'main' ? 'nodemain' : 'nodedev'}"
         IMAGE_TAG  = 'v1.0'
         DOCKERHUB_REPO = 'dmugrazhina'
-        PORT       = "${env.BRANCH_NAME == 'main' ? '3000' : '3001'}"
-        CONTAINER_NAME = "${env.BRANCH_NAME == 'main' ? 'app-main' : 'app-dev'}"
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        
+
         stage('Build') {
             steps {
                 sh 'npm install'
             }
         }
-        
+
         stage('Test') {
             steps {
                 sh 'npm test'
             }
         }
-        
+
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG} ."
@@ -62,6 +60,7 @@ pipeline {
                 }
             }
         }
+
         stage('Trigger Deploy') {
             steps {
                 script {
@@ -70,3 +69,5 @@ pipeline {
                 }
             }
         }
+    }
+}
