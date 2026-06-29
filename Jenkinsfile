@@ -47,7 +47,7 @@ pipeline {
             }
         }
 
-stage('Push to Docker Hub') {
+        stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub-creds',
@@ -64,8 +64,9 @@ stage('Push to Docker Hub') {
         }
         stage('Trigger Deploy') {
             steps {
-                build job: "${DEPLOY_JOB}", wait: false
+                script {
+                    def deployJob = env.BRANCH_NAME == 'main' ? 'Deploy_to_main' : 'Deploy_to_dev'
+                    build job: deployJob, wait: false
+                }
             }
         }
-    }
-}
