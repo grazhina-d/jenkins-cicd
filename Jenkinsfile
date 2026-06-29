@@ -8,6 +8,7 @@ pipeline {
     environment {
         IMAGE_NAME = "${env.BRANCH_NAME == 'main' ? 'nodemain' : 'nodedev'}"
         IMAGE_TAG  = 'v1.0'
+        DOCKERHUB_REPO = 'dmugrazhina'
         PORT       = "${env.BRANCH_NAME == 'main' ? '3000' : '3001'}"
         CONTAINER_NAME = "${env.BRANCH_NAME == 'main' ? 'app-main' : 'app-dev'}"
     }
@@ -46,13 +47,24 @@ pipeline {
             }
         }
 
-
-        stage('Deploy') {
+stage('Push to Docker Hub') {
             steps {
-                sh """
-                    docker rm -f ${CONTAINER_NAME} || true
-                    docker run -d --name ${CONTAINER_NAME} -p ${PORT}:3000 ${IMAGE_NAME}:${IMAGE_TAG}
-                """
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        docker push ${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker logout
+                    """
+                }
+            }
+        }
+        stage('Trigger Deploy') {
+            steps {
+                build job: "${DEPLOY_JOB}", wait: false
             }
         }
     }
