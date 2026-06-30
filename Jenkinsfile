@@ -27,6 +27,7 @@ pipeline {
                 docker {
                     image 'node:7.8.0'
                     reuseNode true
+                    args '-u root'
                 }
             }
             steps {
@@ -39,12 +40,14 @@ pipeline {
                 docker {
                     image 'node:7.8.0'
                     reuseNode true
+                    args '-u root'
                 }
             }
             steps {
                 sh 'npm test'
             }
         }
+
 
         stage('Build Docker Image') {
             steps {
