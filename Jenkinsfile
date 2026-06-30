@@ -1,3 +1,5 @@
+@Library('jenkins-shared-lib') _
+
 pipeline {
     agent any
 
@@ -46,16 +48,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG} ."
+                buildDockerImage(image: "${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG}")
             }
         }
         
         stage('Scan Docker Image for Vulnerabilities') {
             steps {
-                script {
-                    def vulnerabilities = sh(script: "trivy image --exit-code 0 --severity HIGH,MEDIUM,LOW --no-progress --cache-dir /tmp/trivy-cache-${env.BRANCH_NAME} ${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG}", returnStdout: true).trim()
-                    echo "Vulnerability Report:\n${vulnerabilities}"
-                }
+                trivyScan(image: "${DOCKERHUB_REPO}/${IMAGE_NAME}:${IMAGE_TAG}", branch: "${env.BRANCH_NAME}")
             }
         }
 
